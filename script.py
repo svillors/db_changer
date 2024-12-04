@@ -11,14 +11,18 @@ from datacenter.models import Mark, Chastisement, Lesson, Commendation, Schoolki
 
 
 def get_schoolkid(name):
-    kids = Schoolkid.objects.filter(full_name__contains=name)
-    if len(kids) == 1:
-        return kids.first()
-    elif len(kids) > 1:
-        print('С этими данными найдено несколько срзу учеников.')
-        return
+    if name:
+        kids = Schoolkid.objects.filter(full_name__contains=name)
+        if len(kids) == 1:
+            return kids.first()
+        elif len(kids) > 1:
+            print('С этими данными найдено сразу несколько учеников.')
+            return
+        else:
+            print('Учника с этими данными не существует.')
+            return
     else:
-        print('Учника с этими данными не существует.')
+        print("Вы ничего не ввели.")
         return
 
 
@@ -28,16 +32,18 @@ def get_random_lesson(subject, year_of_study, group_letter):
                                     group_letter=group_letter)
     if lessons:
         return choice(lessons)
-    print("По этим данным ничего не найдено.")
+    print("Вы ничего не ввели или предмет был введён неправильно.")
     return
 
 
 def fix_marks(schoolkid):
-    Mark.objects.filter(schoolkid=schoolkid, points__in=[2, 3]).update(points=5)
+    Mark.objects.filter(schoolkid=schoolkid,
+                        points__in=[2, 3]).update(points=5)
 
 
 def remove_chastisements(schoolkid):
-    Chastisement.objects.filter(schoolkid__full_name__contains=schoolkid.full_name).delete()
+    Chastisement.objects.filter(
+        schoolkid__full_name__contains=schoolkid.full_name).delete()
 
 
 def create_commendation(schoolkid, lesson):
@@ -83,15 +89,12 @@ def create_commendation(schoolkid, lesson):
 if __name__ == "__main__":
     schoolkid = get_schoolkid(input("Введите ФИО ученика: "))
     if schoolkid:
-        print("Введите предмет, класс, литеру класса через пробел.")
-        try:
-            *subject, year_of_study, group_letter = input("Ввод: ").split()
-            lesson = get_random_lesson(' '.join(subject),
-                                       int(year_of_study),
-                                       group_letter)
-            if lesson:
-                fix_marks(schoolkid)
-                remove_chastisements(schoolkid)
-                create_commendation(schoolkid, lesson)
-        except ValueError:
-            print("Данные не были введены или введены неправильно.")
+        subject = input(
+            'Введите предмет для создания похвалы: ')
+        lesson = get_random_lesson(subject,
+                                   schoolkid.year_of_study,
+                                   schoolkid.group_letter)
+        if lesson:
+            fix_marks(schoolkid)
+            remove_chastisements(schoolkid)
+            create_commendation(schoolkid, lesson)
