@@ -12,10 +12,11 @@ from datacenter.models import Mark, Chastisement, Lesson, Commendation, Schoolki
 
 def get_schoolkid(name):
     if name:
-        kids = Schoolkid.objects.filter(full_name__contains=name)
-        if len(kids) == 1:
-            return kids.first()
-        elif len(kids) > 1:
+        number_of_kids = Schoolkid.objects.filter(
+            full_name__contains=name).count()
+        if number_of_kids == 1:
+            return Schoolkid.objects.filter(full_name__contains=name).first()
+        elif number_of_kids > 1:
             print('С этими данными найдено сразу несколько учеников.')
             return
         else:
@@ -29,9 +30,9 @@ def get_schoolkid(name):
 def get_random_lesson(subject, year_of_study, group_letter):
     lessons = Lesson.objects.filter(subject__title__contains=subject,
                                     year_of_study=year_of_study,
-                                    group_letter=group_letter)
+                                    group_letter=group_letter).order_by("?")
     if lessons:
-        return choice(lessons)
+        return lessons.first()
     print("Вы ничего не ввели или предмет был введён неправильно.")
     return
 
